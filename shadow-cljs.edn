@@ -1,0 +1,21 @@
+;; shadow-cljs configuration
+{:source-paths
+ ["src/dev"
+  "src/main"
+  "src/test"]
+
+ :dependencies
+ [[reagent "0.9.1"]
+  [re-frame "0.11.0"]
+  [binaryage/devtools "1.0.0"]
+  ;[react "^16.9.0"]
+  ;[react-dom "^16.9.0"]
+  ;[shadow-cljs "^2.8.52"]
+  ]
+ :nrepl {:port 9000 init-ns ebc.client}
+ :dev-http {8000 "public"}
+ :builds
+ {:app
+  {:target :browser
+   :modules {:main {:init-fn ebc.app/init}}
+   }}}

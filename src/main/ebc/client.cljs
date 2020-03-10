@@ -11,6 +11,9 @@
 (defonce local-accounts (atom []))
 
 
+(defmacro inline-resource [resource-path]
+          (slurp resource-path))
+
 
 ;(defonce web3 (atom nil))
 

@@ -10,7 +10,6 @@
                                  Table Table.Body Table.Header Table.HeaderCell Table.Cell Table.Row]]
     [clojure.string :as string]))
 
-
 (defn dispatch-example-event [text]
       (rf/dispatch [:send-text text]))
 
@@ -28,7 +27,7 @@
                                         (rf/dispatch [:set-current-account (.-value v)])
                                         (rf/dispatch [:get-balance]))}])
 
-(defn accounts [] ;; send directly form
+(defn send-directly [] ;; send directly form
       [:> Form [:label "Connect"]
        [:> Form.Group {:widths "equal"}
         [accounts-dropdown]
@@ -46,6 +45,33 @@
        [:> Form.Group {:widths "equal"}
         [:> Form.Button {:onClick #(rf/dispatch [:send-form :send-directly-form]) :content "Send!"}]]])
 
+(defn approve-sablier-contract [] ;; send directly form
+      [:> Form [:label "Approve Sablier contract"]
+       [:> Form.Group {:widths "equal"}
+        [:> Form.Input {:fluid true :label "Allowed Amount" :value @(rf/subscribe [:field-value :approve-sablier-contract-form :allowed-amount])}]
+        ]
+       [:> Form.Group {:widths "equal"}
+        [:> Form.Button {:onClick #(rf/dispatch [:send-form :approve-sablier-contract-form]) :content "Approve Sablier contract!"}]]])
+
+(defn create-sablier-stream []
+      ; function createStream(address recipient, uint256 deposit, address tokenAddress, uint256 startTime, uint256 stopTime) returns (uint256)
+      [:> Form [:label "Create Sablier stream"]
+       [:> Form.Group {:widths "equal"}
+      [:> Form.Input {:fluid true :label "deposit"
+                      :value @(rf/subscribe [:field-value :create-sablier-stream-form :deposit])
+                      :onChange #(rf/dispatch [:set-field-value :create-sablier-stream-form :deposit (.-value %2)])}]
+      [:> Form.Input {:fluid true :label "token address"
+                      :value @(rf/subscribe [:field-value :create-sablier-stream-form :token-address])
+                      :onChange #(rf/dispatch [:set-field-value :create-sablier-stream-form :token-address (.-value %2)])}]
+      [:> Form.Input {:fluid true :label "start-time - number of seconds to add from now"
+                      :value @(rf/subscribe [:field-value :create-sablier-stream-form :time-from-now])
+                      :onChange #(rf/dispatch [:set-field-value :create-sablier-stream :time-from-now (.-value %2)])}]
+      [:> Form.Input {:fluid true :label "duration"
+                      :value @(rf/subscribe [:field-value :create-sablier-stream-form :duration])
+                      :onChange #(rf/dispatch [:set-field-value :create-sablier-stream-form :duration (.-value %2)])}]]
+        [:> Form.Group {:widths "equal"}
+         [:> Form.Button {:onClick #(rf/dispatch [:send-form :create-sablier-stream-form]) :content "Create Sablier Stream!"}]]])
+
 (defn connect-button
       []
       [:> Form
@@ -55,10 +81,6 @@
                                  (dispatch-example-event "clicked")
                                  (rf/dispatch [:connect-web3]))}
             "Connect!"]]])
-
-(defn example-text []
-      (-> @(rf/subscribe [:text])))
-
 
 (defn index []
       (when-let [web3 @(rf/subscribe [:web3])]
@@ -84,11 +106,18 @@
         [:Grid.Column]]
        [:> Grid.Row {:columns 1}
         [:> Grid.Column {}
-         [accounts]]]
+         [send-directly]]]
        [:> Grid.Row {:columns 3}
         [:> Grid.Column {} ]
         [:> Grid.Column {}
+         [approve-sablier-contract]
          ]
-        [:Grid.Column {} [example-text]]]
+        [:Grid.Column {} ]]
+       [:> Grid.Row {:columns 3}
+        [:> Grid.Column {} ]
+        [:> Grid.Column {}
+         [create-sablier-stream]
+         ]
+        [:Grid.Column {} ]]
        ]
       )

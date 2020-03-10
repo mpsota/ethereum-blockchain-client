@@ -3,6 +3,7 @@
             [re-frame.core :as rf]
             [ebc.web3-client :as client]))
 
+;(def foo (client/slurp "/tmp/foo"))
 
 (rf/reg-event-db
   :initialize

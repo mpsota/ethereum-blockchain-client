@@ -4,6 +4,7 @@
     [re-frame.core :as rf]
     [clojure.string :as str]
     ["semantic-ui-react" :refer [Grid Grid.Row Grid.Column Divider Container
+                                 Segment Rail
                                  Header Header.Content
                                  Button Form Form.Input Form.Button Form.Group Form.Field Form.Dropdown Form.Select Input
                                  Table Table.Body Table.Header Table.HeaderCell Table.Cell Table.Row]]
@@ -84,7 +85,7 @@
       [:> Form.Input {:fluid true :label "deposit"
                       :value @(rf/subscribe [:field-value :create-sablier-stream-form :deposit])
                       :onChange #(rf/dispatch [:set-field-value :create-sablier-stream-form :deposit (.-value %2)])}]
-      [:> Form.Input {:fluid true :label "start-time - #seconds since now"
+      [:> Form.Input {:fluid true :label "start-time"
                       :value @(rf/subscribe [:field-value :create-sablier-stream-form :time-since-now])
                       :onChange #(rf/dispatch [:set-field-value :create-sablier-stream-form :time-since-now (.-value %2)])}]
       [:> Form.Input {:fluid true :label "duration"
@@ -99,49 +100,69 @@
        [:> Grid.Column
         [:> Header {:as size} title]]])
 
+(defn make-left-rail [& text]
+      [:> Rail {:attached true :position "left"}
+       [:> Segment (interpose [:br] text)]])
 
 (defn index []
       [:> Grid {:columns 3
-                :style   {:width      "75%"
+                ;:centered true
+                :style   {:width      "65%"
                           :text-align "center"
                           :margin     "auto"}}
        [:> Grid.Row]
        [:> Grid.Row
         [:> Grid.Column]
         [:> Grid.Column
-         [:> Header {:as "h1"} "Ethereum Blockchain Client"]]
+         [:> Container
+          [:> Header {:as "h1"} "Ethereum Blockchain Client"]
+          [:p {} "Backend-less, server-less app using Sablier, the protocol for real-time finance on the Ethereum blockchain" ]]]
         [:> Grid.Column]]
        [:> Grid.Row {:columns 1}
         [:> Grid.Column
          [:> Divider]]]
        [:> Grid.Row {:columns 3}
-        [:> Grid.Column ]
+        [:> Grid.Column]
+        [make-left-rail "Click the button to connect with MetaMask"]
         [:> Grid.Column {}
          [connect-button]]
-        [:Grid.Column]]
+        [:> Grid.Column]]
        [make-header-sub-row "h3" "Set common fields"]
        [:> Grid.Row {:columns 1}
+        [make-left-rail
+         "1) Select account to use,"
+         "2) Input recipient address,"
+         "3) Input accepted gas cost (create stream action's typical cost is <250K)"]
         [:> Grid.Column {}
          [common-fields]]]
-       [make-header-sub-row "h3" "Send ETH directly to another address"]
-       [:> Grid.Row {:columns 1}
-        [:> Grid.Column {}
-         [send-directly]]]
        [make-header-sub-row "h3" "Approve Sablier contract"]
        [:> Grid.Row {:columns 3}
+        [make-left-rail "Limit maximum number of tokens to stream and execute the contract."]
         [:> Grid.Column {} ]
         [:> Grid.Column {}
          [approve-sablier-contract]]
         [:Grid.Column {} ]]
        [make-header-sub-row "h3" "Create Sablier Stream"]
        [:> Grid.Row {:columns 1}
+        [make-left-rail "Create stream:"
+         "1) Deposit - number of tokens to stream, *must* be a multiple of the duration"
+         "2) Start time - Number of seconds since now, when streaming is going to start"
+         "3) Duration - Time in which all tokens are going to be streamed"]
         [:> Grid.Column {}
          [create-sablier-stream]]]
        [:> Grid.Row {:columns 1}
+        [make-left-rail "Here you will see (hope not) errors which occured during contract creation."]
         [:> Grid.Column {}
          [:> Header {:as "h3"} "Errors: "]
-         [:p @(rf/subscribe [:errors])]
-         ]
-        ]
+         (when-not (empty? @(rf/subscribe [:errors]))
+                   [:p {:class "ui negative message"} @(rf/subscribe [:errors])])]]
+       [:> Grid.Row {:columns 1}
+        [:> Grid.Column
+         [:> Divider]]]
+       [make-header-sub-row "h3" "Send ETH directly to another address"]
+       [:> Grid.Row {:columns 1}
+        [make-left-rail "Here you can send ETH, directly to previously defined recipient"]
+        [:> Grid.Column {}
+         [send-directly]]]
        ]
       )

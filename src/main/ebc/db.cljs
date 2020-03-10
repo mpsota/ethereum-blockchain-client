@@ -25,7 +25,7 @@
        :accounts []
        :current-account ""
        :receiver "0xE15cEDc7fBe317eE989B57d7229149bE3210DF71"
-       :gas-limit "10000000"
+       :gas-limit "500000"
        :balance 0
        :dai-balance 0
        :send-directly-form {:amount "0.001"}

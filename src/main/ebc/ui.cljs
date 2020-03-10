@@ -1,6 +1,5 @@
 (ns ebc.ui
   (:require
-    ;[ebc.client :as client]
     [reagent.core :as r]
     [re-frame.core :as rf]
     [clojure.string :as str]
@@ -10,13 +9,13 @@
                                  Table Table.Body Table.Header Table.HeaderCell Table.Cell Table.Row]]
     [clojure.string :as string]))
 
-(defn dispatch-example-event [text]
-      (rf/dispatch [:send-text text]))
-
-(defn dispatch-account-event [accounts]
-      )
+(defn connect-button
+      "Connects with MetaMask"
+      []
+      [:> Button {:onClick #(rf/dispatch [:connect-web3])} "Connect"])
 
 (defn accounts-dropdown []
+      "Dropdown with all available accounts, after MetaMask connected to the page"
       [:> Form.Select { ;:style {:width "400px"}
                          :label "Sender's account"
                          :search    true
@@ -26,7 +25,9 @@
                          :onChange  (fn [_e v]
                                         (rf/dispatch [:set-current-account (.-value v)])
                                         (rf/dispatch [:get-balance]))}])
-(defn common-fields [] ;; fields which are shared between forms
+(defn common-fields
+      "Fields which are used by all other forms - Sender, Recipient and Gas limit"
+      []
       [:> Form [:label "Connect"]
        [:> Form.Group {:widths "equal"}
         [accounts-dropdown]
@@ -39,7 +40,8 @@
         ]]
       )
 
-(defn send-directly [] ;; send directly form
+(defn send-directly []
+      "Sends ETH directly between accounts"
       [:> Form
        [:> Form.Group {:widths "equal"}
         [:> Container
@@ -52,13 +54,16 @@
         [:> Form.Button {:onClick #(rf/dispatch [:send-form :send-directly-form]) :content "Send eth directly!"}]]])
 
 (defn transaction-hash-container [transaction]
+      "Display transaction hash, after transaction is sent"
       (when-let [hash @(rf/subscribe [:get-db-value transaction])]
                 [:> Container
                  [:> Header {:as "h5"} "Transaction hash:"]
                  [:a {:target "_blank"
                       :href (str "https://rinkeby.etherscan.io/tx/" hash)} hash]]))
 
-(defn approve-sablier-contract [] ;; approve the contract with max allowed tokens
+(defn approve-sablier-contract
+      "Create and approve contract which sets the maximum number of tokens which may be streamd"
+      []
       [:> Form
        [:> Form.Group {:widths "equal"}
         [:> Container
@@ -73,7 +78,7 @@
        [transaction-hash-container :approve-transaction-hash]])
 
 (defn create-sablier-stream []
-      ; function createStream(address recipient, uint256 deposit, address tokenAddress, uint256 startTime, uint256 stopTime) returns (uint256)
+      "Stream deposit at now+start-time for duration time."
       [:> Form
        [:> Form.Group {:widths "equal"}
       [:> Form.Input {:fluid true :label "deposit"
@@ -89,24 +94,13 @@
          [:> Form.Button {:onClick #(rf/dispatch [:send-form :create-sablier-stream-form]) :content "Create Sablier Stream!"}]]
        [transaction-hash-container :stream-transaction-hash]])
 
-
-(defn connect-button
-      []
-      [:> Button {:onClick (fn [e]
-                               (dispatch-example-event "clicked")
-                               (rf/dispatch [:connect-web3]))}
-       "Connect"])
-
-(defn make-sub-row [size title]
+(defn make-header-sub-row [size title]
       [:> Grid.Row {:columns 1}
        [:> Grid.Column
         [:> Header {:as size} title]]])
 
 
 (defn index []
-      (when-let [web3 @(rf/subscribe [:web3])]
-            (.getAccounts (.-eth web3) (fn [_e v]
-                                                 (rf/dispatch [:get-accounts v]))))
       [:> Grid {:columns 3
                 :style   {:width      "75%"
                           :text-align "center"
@@ -125,21 +119,21 @@
         [:> Grid.Column {}
          [connect-button]]
         [:Grid.Column]]
-       [make-sub-row "h3" "Set common fields"]
+       [make-header-sub-row "h3" "Set common fields"]
        [:> Grid.Row {:columns 1}
         [:> Grid.Column {}
          [common-fields]]]
-       [make-sub-row "h3" "Send ETH directly to another address"]
+       [make-header-sub-row "h3" "Send ETH directly to another address"]
        [:> Grid.Row {:columns 1}
         [:> Grid.Column {}
          [send-directly]]]
-       [make-sub-row "h3" "Approve Sablier contract"]
+       [make-header-sub-row "h3" "Approve Sablier contract"]
        [:> Grid.Row {:columns 3}
         [:> Grid.Column {} ]
         [:> Grid.Column {}
          [approve-sablier-contract]]
         [:Grid.Column {} ]]
-       [make-sub-row "h3" "Create Sablier Stream"]
+       [make-header-sub-row "h3" "Create Sablier Stream"]
        [:> Grid.Row {:columns 1}
         [:> Grid.Column {}
          [create-sablier-stream]]]

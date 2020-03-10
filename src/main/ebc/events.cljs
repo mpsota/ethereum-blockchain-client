@@ -4,47 +4,25 @@
             [ebc.web3-client :as client]
             [ebc.contract :as contract]))
 
-;(def foo (client/slurp "/tmp/foo"))
-
-(rf/reg-event-db
-  :initialize
-  (fn [_ _]
-      {:web3 nil
-       :text "Nothing"
-       :transaction-hash ""
-       :errors []
-       :accounts []
-       :current-account ""
-       :receiver "0xE15cEDc7fBe317eE989B57d7229149bE3210DF71"
-       :gas-limit "10000000"
-       :balance 0
-       :dai-balance 0
-       :send-directly-form {:amount "0.001"}
-       :approve-sablier-contract-form {:allowed-amount "0"}
-       :create-sablier-stream-form {:deposit "3600"
-                                    :time-since-now "3600"
-                                    :duration "600"}
-       :stream-transaction-hash nil
-       :approve-transaction-hash nil}))
-
 (rf/reg-event-db
   :connect-web3
   (fn [db [_ _]]
       (rf/dispatch [:set-web3 (client/connect)])
       db))
 
-(rf/reg-event-db
-  :send-text
-  (fn [db [_ new-text]]
-      (assoc db :text new-text)))
-
-(rf/reg-event-db
+(rf/reg-event-fx
   :set-web3
-  (fn [db [_ web3]]
-      (assoc db :web3 web3)))
+  (fn [{:keys [db]} [_ web3]]
+      {:get-accounts [web3]
+       :db (assoc db :web3 web3)}))
+
+(rf/reg-fx
+  :get-accounts
+  (fn [[web3]]
+      (.getAccounts (.-eth web3) #(rf/dispatch [:set-accounts %2]))))
 
 (rf/reg-event-db
-  :get-accounts
+  :set-accounts
   (fn [db [_ accounts]]
       (assoc db :accounts accounts)))
 
@@ -142,11 +120,6 @@
   :get-balance
   (fn [db [_ balance]]
       (assoc db :balance balance)))
-
-(rf/reg-event-db
-  :set-transaction-hash
-  (fn [db [_ hash]]
-      (assoc db :transaction-hash hash)))
 
 (rf/reg-event-db
   :add-error

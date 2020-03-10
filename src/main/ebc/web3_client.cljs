@@ -12,6 +12,9 @@
            (.setProvider web3 Web3/givenProvider)
            web3))
 
+(defn get-accounts [web3 fn]
+      (.getAccounts (.-eth web3) fn))
+
 (defn set-default-address
       "Sets default address to use to pay for gas"
       [web3 sender-address]

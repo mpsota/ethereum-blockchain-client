@@ -34,3 +34,14 @@
   :field-value
   (fn [db [_ form-name field-name]]
       (get-in db [form-name field-name])))
+
+(rf/reg-sub
+  :get-db-value
+  (fn [db [_ field-name]]
+      (get-in db [field-name])))
+
+(rf/reg-sub
+  :errors
+  (fn [db _]
+      (->> (map js/JSON.stringify (:errors db))
+           (interpose [:br]))))

@@ -14,7 +14,7 @@
 
 (defn set-default-address
       "Sets default address to use to pay for gas"
-      [sender-address]
+      [web3 sender-address]
       (set! (.-defaultAccount (.-eth web3)) sender-address))
 
 

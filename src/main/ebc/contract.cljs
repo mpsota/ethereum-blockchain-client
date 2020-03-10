@@ -22,62 +22,58 @@
 ; (.methods contract)
 ; (.call (.name ..
 
-(defn connect []
-      (js/window.ethereum.enable)
-      (let [web3 (new Web3)]
-           (.setProvider web3 Web3/givenProvider)
-           (set! (.-defaultAccount (.-eth web3)) address) ;; move to function called after selection
-           web3))
-
-(defn make-sablier-contract [web3]
-  (let [eth (.-eth web3)]
-       (.setProvider web3 Web3/givenProvider)
-       (new (.-Contract eth) sablier-abi sablier-contract-address)
-       ))
-
-(defn make-erc20-contract [web3 sender amount]
+;; DAI token to approve send
+(defn make-dai-token-contract [web3 sender gas-limit]
       (let [eth (.-eth web3)]
            (.setProvider web3 Web3/givenProvider)
-           (let [contract (new (.-Contract eth) test-dai-abi dai-token-address #js{:from sender
-                                                                                   :gas gas-limit})]
-                (.send (.approve (.-methods contract) sablier-contract-address amount)
-                       (fn [e r]
-                           (js/console.log e r)))))) ;;allowance?
+           (new (.-Contract eth) test-dai-abi dai-token-address #js{:from sender
+                                                                    :gas gas-limit})))
 
-(defn make-erc20-contract-old [web3]
-      (let [;web3 (new Web3)
-            eth (.-eth web3)]
+
+(defn approve-dai-sablier-contract
+      "Approves `amount` of dai tokens to be send from `sender` account to sablier-contract-address"
+      [web3 sender amount gas-limit transaction-hash-fn receipt-fn error-fn]
+      (js/console.log sender amount gas-limit)
+      (let [contract (make-dai-token-contract web3 sender gas-limit)
+            promise (.send (.approve (.-methods contract) sablier-contract-address amount))]
+           (doto promise
+                 (.on "transactionHash" transaction-hash-fn)
+                 (.on "receipt" receipt-fn)
+                 (.on "error" error-fn))))
+
+(defn get-dai-balance [web3 sender gas-limit callback-fn]
+      (let [contract (make-dai-token-contract web3 sender gas-limit)]
+           (.call (.balanceOf (.-methods contract) sender) callback-fn)))
+
+;; Stream using Sablier protocol
+
+(defn make-sablier-contract [web3]
+      (let [eth (.-eth web3)]
            (.setProvider web3 Web3/givenProvider)
-           (new (.-Contract eth) test-dai-abi dai-token-address #js{:from address
-                                                                    :gas gas-limit})
+           (new (.-Contract eth) sablier-abi sablier-contract-address)
            ))
-#_(doto (.send (.approve (.-methods (make-erc20-contract (:web3 @re-frame.db/app-db))) contract-address "3600"))
-      (.on "receipt" js/console.log)
-      (.on "error" js/console.log))
 
-(defn create-sablier-stream [web3 token-address]
-      (let [now (Math/round (/ (.getTime (new js/Date.)) 1000))
-            deposit "3600" ;; must be a multiple of the difference between the stop time and the start time,
-            start-time (+ now 3600)
-            end-time (+ 600 start-time)]
-           (.send (.createStream (.-methods (make-sablier-contract web3))
-                                 receiver deposit token-address start-time end-time)
-                  #js{:from address :gas gas-limit})
-           ))
-;(.-address c)
-; (js/console.log (.-createStream (.-methods (make-sablier-contract))))
+(defn create-sablier-stream [web3 sender receiver deposit time-since-now duration transaction-hash-fn receipt-fn error-fn]
+      ;; deposit must be a multiple of the difference between the stop time and the start time,
 
-     ;(make-sablier-contract (:web3 @re-frame.db/app-db))
-     ;(def contract (Contract (.-eth (:web3 @re-frame.db/app-db)) contract-address sablier-abi))
+      (let [epoch-now (Math/round (/ (.getTime (new js/Date.)) 1000))
+            start-time (+ epoch-now (js/Number time-since-now))
+            end-time (+ (js/Number duration) start-time)]
+           (js/console.log deposit start-time end-time)
+           (let [promise (.send (.createStream (.-methods (make-sablier-contract web3))
+                                               receiver deposit dai-token-address start-time end-time)
+                                #js{:from sender :gas gas-limit})]
+                (doto promise
+                      (.on "transactionHash" transaction-hash-fn)
+                      (.on "receipt" receipt-fn)
+                      (.on "error" error-fn)))))
 
-     ;const sablier = new web3.eth.Contract(0xabcd..., sablierABI);
-     ;const recipient = 0xcdef...;
-     ;const deposit = "2999999999999998944000";
-     ;const now = Math.round(new Date().getTime() / 1000);
-     ;const startTime = now + 3600;
-     ;const stopTime = now + 2592000 + 3600;
+;; Withdraw tokens from Sablier stream
 
-     ;const token = new web3.eth.Contract(0xcafe..., erc20ABI);
-     ;const approveTx = await token.methods.approve(sablier.options.address, deposit).send();
+(def tx "0xe69cd2c11cf74bbaa825df11fed5ac8eb47d6d9d8251852c1738ab4c4acf1c01")
 
-     ;const createStreamTx = await sablier.methods.createStream(recipient, deposit, token.address, startTime, stopTime).send();
+(defn withdraw-from-stream [web3]
+      (.call (.withdrawFromStream (.-methods (make-sablier-contract web3))
+                                  tx
+                                  "30")
+             #(js/console.log %2)))

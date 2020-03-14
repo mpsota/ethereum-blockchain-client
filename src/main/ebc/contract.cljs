@@ -26,67 +26,67 @@
 ;; DAI token to approve send
 
 (defn make-dai-token-contract [web3 sender gas-limit]
-      (let [eth (.-eth web3)]
-           (.setProvider web3 Web3/givenProvider)
-           (new (.-Contract eth) test-dai-abi dai-token-address #js{:from sender
-                                                                    :gas gas-limit})))
+  (let [eth (.-eth web3)]
+    (.setProvider web3 Web3/givenProvider)
+    (new (.-Contract eth) test-dai-abi dai-token-address #js{:from sender
+                                                             :gas  gas-limit})))
 
 
 (defn approve-dai-sablier-contract
-      "Approves `amount` of dai tokens to be send from `sender` account to sablier-contract-address"
-      [web3 sender amount gas-limit transaction-hash-fn receipt-fn error-fn]
-      (js/console.log sender amount gas-limit)
-      (let [contract (make-dai-token-contract web3 sender gas-limit)
-            promise (.send (.approve (.-methods contract) sablier-contract-address amount))]
-           (doto promise
-                 (.on "transactionHash" transaction-hash-fn)
-                 (.on "receipt" receipt-fn)
-                 (.on "error" error-fn))))
+  "Approves `amount` of dai tokens to be send from `sender` account to sablier-contract-address"
+  [web3 sender amount gas-limit transaction-hash-fn receipt-fn error-fn]
+  (js/console.log sender amount gas-limit)
+  (let [contract (make-dai-token-contract web3 sender gas-limit)
+        promise (.send (.approve (.-methods contract) sablier-contract-address amount))]
+    (doto promise
+      (.on "transactionHash" transaction-hash-fn)
+      (.on "receipt" receipt-fn)
+      (.on "error" error-fn))))
 
 (defn get-dai-balance [web3 sender gas-limit callback-fn]
-      "Return balance (DAI tokens)"
-      (let [contract (make-dai-token-contract web3 sender gas-limit)]
-           (.call (.balanceOf (.-methods contract) sender) callback-fn)))
+  "Return balance (DAI tokens)"
+  (let [contract (make-dai-token-contract web3 sender gas-limit)]
+    (.call (.balanceOf (.-methods contract) sender) callback-fn)))
 
 ;; Stream using Sablier protocol
 
 (defn make-sablier-contract [web3]
-      (let [eth (.-eth web3)]
-           (.setProvider web3 Web3/givenProvider)
-           (new (.-Contract eth) sablier-abi sablier-contract-address)
-           ))
+  (let [eth (.-eth web3)]
+    (.setProvider web3 Web3/givenProvider)
+    (new (.-Contract eth) sablier-abi sablier-contract-address)
+    ))
 
 (defn create-sablier-stream [web3 sender receiver deposit time-since-now duration transaction-hash-fn receipt-fn error-fn]
-      ;; deposit must be a multiple of the difference between the stop time and the start time,
-      (let [epoch-now (Math/round (/ (.getTime (new js/Date.)) 1000))
-            start-time (+ epoch-now (js/Number time-since-now))
-            end-time (+ (js/Number duration) start-time)]
-           (js/console.log deposit start-time end-time)
-           (let [promise (.send (.createStream (.-methods (make-sablier-contract web3))
-                                               receiver deposit dai-token-address start-time end-time)
-                                #js{:from sender :gas gas-limit})]
-                (doto promise
-                      (.on "transactionHash" transaction-hash-fn)
-                      (.on "receipt" receipt-fn)
-                      (.on "error" error-fn)))))
+  ;; deposit must be a multiple of the difference between the stop time and the start time,
+  (let [epoch-now (Math/round (/ (.getTime (new js/Date.)) 1000))
+        start-time (+ epoch-now (js/Number time-since-now))
+        end-time (+ (js/Number duration) start-time)]
+    (js/console.log deposit start-time end-time)
+    (let [promise (.send (.createStream (.-methods (make-sablier-contract web3))
+                                        receiver deposit dai-token-address start-time end-time)
+                         #js{:from sender :gas gas-limit})]
+      (doto promise
+        (.on "transactionHash" transaction-hash-fn)
+        (.on "receipt" receipt-fn)
+        (.on "error" error-fn)))))
 
 ;; debug functions
 
 (def tx "0x047dabc9d3ed35d2d5e29f8e760e73a81b54bdb51a05ac4dce958bedee57b863")
 
 (defn withdraw-from-stream [web3]
-      (.call (.withdrawFromStream (.-methods (make-sablier-contract web3))
-                                  "22"
-                                  "360000060")
-             #(js/console.log %2)))
+  (.call (.withdrawFromStream (.-methods (make-sablier-contract web3))
+                              "22"
+                              "360000060")
+         #(js/console.log %2)))
 
 (defn balance-of-stream [web3 owner]
-      (.call (.balanceOf (.-methods (make-sablier-contract web3))
-                                  "22"
-                                  owner)
-             #(js/console.log %2)))
+  (.call (.balanceOf (.-methods (make-sablier-contract web3))
+                     "22"
+                     owner)
+         #(js/console.log %2)))
 
 (defn delta-of [web3 id]
-      (.call (.deltaOf (.-methods (make-sablier-contract web3))
-                         id)
-             #(js/console.log %2)))
+  (.call (.deltaOf (.-methods (make-sablier-contract web3))
+                   id)
+         #(js/console.log %2)))

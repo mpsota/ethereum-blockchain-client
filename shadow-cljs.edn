@@ -1,24 +1,7 @@
 ;; shadow-cljs configuration
-{:source-paths
- ["src/dev"
-  "src/main"
-  "src/test"]
-
- :dependencies
- [[reagent "0.9.1"]
-  [re-frame "0.11.0"]
-  [day8.re-frame/test "0.1.5"]
-  [binaryage/devtools "1.0.0"]
-  [org.clojure/clojure "1.10.1"]
-  [funcool/promesa "5.1.0"]
-  ;[react "^16.9.0"]
-  ;[react-dom "^16.9.0"]
-  ;[shadow-cljs "^2.8.52"]
-  ]
+{:deps {:aliases [:dev :test]}
  :nrepl {:port 9000 init-ns ebc.client}
  :dev-http {8000 "public"}
- :builds
- {:app
-  {:target :browser
-   :modules {:main {:init-fn ebc.app/init}}
-   }}}
+ :builds {:app
+          {:target :browser
+           :modules {:main {:init-fn ebc.app/init}}}}}

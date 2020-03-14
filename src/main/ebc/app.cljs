@@ -12,7 +12,7 @@
 (.log js/console (range 200))
 
 (defn render []
-      (rdom/render [ui/index] (js/document.getElementById "main")))
+  (rdom/render [ui/index] (js/document.getElementById "main")))
 
 (defn ^:dev/after-load clear-cache-and-render!
       []

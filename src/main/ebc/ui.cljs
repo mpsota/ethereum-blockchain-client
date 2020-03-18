@@ -62,6 +62,13 @@
      [:a {:target "_blank"
           :href   (str "https://rinkeby.etherscan.io/tx/" hash)} hash]]))
 
+(defn stream-id-container []
+      "Display streamID extracted from reciept"
+      (when-let [id @(rf/subscribe [:get-db-value :stream-id])]
+                [:> Container
+                 [:> Header {:as "h5"} "Stream ID:"]
+                 [:p id]]))
+
 (defn approve-sablier-contract
   "Create and approve contract which sets the maximum number of tokens which may be streamd"
   []
@@ -93,7 +100,8 @@
                     :onChange #(rf/dispatch [:set-field-value :create-sablier-stream-form :duration (.-value %2)])}]]
    [:> Form.Group {:widths "equal"}
     [:> Form.Button {:onClick #(rf/dispatch [:send-form :create-sablier-stream-form]) :content "Create Sablier Stream!"}]]
-   [transaction-hash-container :stream-transaction-hash]])
+   [transaction-hash-container :stream-transaction-hash]
+   [stream-id-container]])
 
 (defn make-header-sub-row [size title]
   [:> Grid.Row {:columns 1}

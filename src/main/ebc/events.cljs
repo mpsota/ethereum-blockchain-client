@@ -81,7 +81,7 @@
     (js/console.log web3 sender receiver deposit time-since-now duration)
     (let [transaction-hash-fn #(rf/dispatch [:set-db-value :stream-transaction-hash %1])
           error-fn #(rf/dispatch [:add-error %1])
-          receipt-fn #(js/console.log "Receipt:" %1)]
+          receipt-fn #(rf/dispatch [:set-db-value :stream-id (contract/parse-receipt %1)])]
       (contract/create-sablier-stream web3 sender receiver deposit time-since-now duration transaction-hash-fn receipt-fn error-fn))))
 
 (rf/reg-event-fx

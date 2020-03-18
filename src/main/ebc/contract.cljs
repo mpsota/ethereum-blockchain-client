@@ -56,6 +56,13 @@
     (new (.-Contract eth) sablier-abi sablier-contract-address)
     ))
 
+(defn parse-receipt
+  "Parse reciept to get the stream ID"
+  [receipt]
+  (let [id (.-returnValues (.-CreateStream (.-events receipt)))]
+    (js/console.log "receipt:" receipt "with id:" (aget id "0"))
+    (aget id "0")))
+
 (defn create-sablier-stream [web3 sender receiver deposit time-since-now duration transaction-hash-fn receipt-fn error-fn]
   ;; deposit must be a multiple of the difference between the stop time and the start time,
   (let [epoch-now (Math/round (/ (.getTime (new js/Date.)) 1000))

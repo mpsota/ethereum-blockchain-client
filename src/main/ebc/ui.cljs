@@ -2,21 +2,18 @@
   (:require
     [reagent.core :as r]
     [re-frame.core :as rf]
-    [clojure.string :as str]
     ["semantic-ui-react" :refer [Grid Grid.Row Grid.Column Divider Container
                                  Segment Rail
-                                 Header Header.Content
-                                 Button Form Form.Input Form.Button Form.Group Form.Field Form.Dropdown Form.Select Input
-                                 Table Table.Body Table.Header Table.HeaderCell Table.Cell Table.Row]]
-    [clojure.string :as string]))
+                                 Header
+                                 Button Form Form.Input Form.Button Form.Group Form.Select]]))
 
 (defn connect-button
   "Connects with MetaMask"
   []
   [:> Button {:onClick #(rf/dispatch [:connect-web3])} "Connect"])
 
-(defn accounts-dropdown []
-  "Dropdown with all available accounts, after MetaMask connected to the page"
+(defn accounts-dropdown "Dropdown with all available accounts, after MetaMask connected to the page"
+  []
   [:> Form.Select {;:style {:width "400px"}
                    :label     "Sender's account"
                    :search    true
@@ -41,8 +38,9 @@
     ]]
   )
 
-(defn send-directly []
+(defn send-directly
   "Sends ETH directly between accounts"
+  []
   [:> Form
    [:> Form.Group {:widths "equal"}
     [:> Container
@@ -54,8 +52,9 @@
    [:> Form.Group {:widths "equal"}
     [:> Form.Button {:onClick #(rf/dispatch [:send-form :send-directly-form]) :content "Send eth directly!"}]]])
 
-(defn transaction-hash-container [transaction]
+(defn transaction-hash-container
   "Display transaction hash, after transaction is sent"
+  [transaction]
   (when-let [hash @(rf/subscribe [:get-db-value transaction])]
     [:> Container
      [:> Header {:as "h5"} "Transaction hash:"]
@@ -85,23 +84,32 @@
     [:> Form.Button {:onClick #(rf/dispatch [:send-form :approve-sablier-contract-form]) :content "Approve Sablier contract!"}]]
    [transaction-hash-container :approve-transaction-hash]])
 
-(defn create-sablier-stream []
+(defn create-sablier-stream
   "Stream deposit at now+start-time for duration time."
-  [:> Form
-   [:> Form.Group {:widths "equal"}
-    [:> Form.Input {:fluid    true :label "deposit"
-                    :value    @(rf/subscribe [:field-value :create-sablier-stream-form :deposit])
-                    :onChange #(rf/dispatch [:set-field-value :create-sablier-stream-form :deposit (.-value %2)])}]
-    [:> Form.Input {:fluid    true :label "start-time"
-                    :value    @(rf/subscribe [:field-value :create-sablier-stream-form :time-since-now])
-                    :onChange #(rf/dispatch [:set-field-value :create-sablier-stream-form :time-since-now (.-value %2)])}]
-    [:> Form.Input {:fluid    true :label "duration"
-                    :value    @(rf/subscribe [:field-value :create-sablier-stream-form :duration])
-                    :onChange #(rf/dispatch [:set-field-value :create-sablier-stream-form :duration (.-value %2)])}]]
-   [:> Form.Group {:widths "equal"}
-    [:> Form.Button {:onClick #(rf/dispatch [:send-form :create-sablier-stream-form]) :content "Create Sablier Stream!"}]]
-   [transaction-hash-container :stream-transaction-hash]
-   [stream-id-container]])
+  []
+  (let [deposit @(rf/subscribe [:field-value :create-sablier-stream-form :deposit])
+        duration @(rf/subscribe [:field-value :create-sablier-stream-form :duration])
+        deposit-valid? (zero? (mod deposit duration))
+        error (when-not deposit-valid? {:content "Deposit should be multiplication of duration", :pointing "above"})]
+    [:> Form {:fields {:deposit "empty"}}
+     [:> Form.Group {:widths "equal"}
+      [:> Form.Input {:fluid    true
+                      :id "deposit"
+                      :valid? deposit-valid?
+                      :error error
+                      :label "deposit"
+                      :value    deposit
+                      :onChange #(rf/dispatch [:set-field-value :create-sablier-stream-form :deposit (.-value %2)])}]
+      [:> Form.Input {:fluid    true :label "start-time"
+                      :value    @(rf/subscribe [:field-value :create-sablier-stream-form :time-since-now])
+                      :onChange #(rf/dispatch [:set-field-value :create-sablier-stream-form :time-since-now (.-value %2)])}]
+      [:> Form.Input {:fluid    true :label "duration"
+                      :value    duration
+                      :onChange #(rf/dispatch [:set-field-value :create-sablier-stream-form :duration (.-value %2)])}]]
+     [:> Form.Group {:widths "equal"}
+      [:> Form.Button {:onClick #(rf/dispatch [:send-form :create-sablier-stream-form]) :content "Create Sablier Stream!"}]]
+     [transaction-hash-container :stream-transaction-hash]
+     [stream-id-container]]))
 
 (defn make-header-sub-row [size title]
   [:> Grid.Row {:columns 1}

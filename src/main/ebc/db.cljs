@@ -12,7 +12,7 @@
 (s/def ::balance ::number-str)
 (s/def ::dai-balance ::number-str)
 
-(s/def ::error (s/keys req [::message ::stack]))
+(s/def ::error (s/keys :req [::message ::stack]))
 (s/def ::errors (s/* ::error))
 (s/def ::approve-transaction-hash string?)
 (s/def ::stream-transaction-hash string?)

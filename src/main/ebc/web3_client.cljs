@@ -1,8 +1,6 @@
 (ns ebc.web3-client
   (:require
-    ["web3" :as Web3]
-    ["web3-eth-personal" :as w3-personal]
-    ["web3-eth" :as w3-eth]))
+    ["web3" :as Web3]))
 
 (defn connect
   "Connect using MetaMask in the browser"

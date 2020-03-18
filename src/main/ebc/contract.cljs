@@ -1,7 +1,6 @@
 (ns ebc.contract
   (:require [ebc.sablier :refer [sablier-abi test-dai-abi]]
-            ["web3" :as Web3]
-            [promesa.core :as p]))
+            ["web3" :as Web3]))
 
 ;; To get free test DAI you should mint contract at https://rinkeby.etherscan.io/address/0xc3dbf84abb494ce5199d5d4d815b10ec29529ff8#writeContract
 ;; source: https://twitter.com/PaulRBerg/status/1198276654566723584
@@ -43,8 +42,9 @@
       (.on "receipt" receipt-fn)
       (.on "error" error-fn))))
 
-(defn get-dai-balance [web3 sender gas-limit callback-fn]
+(defn get-dai-balance
   "Return balance (DAI tokens)"
+  [web3 sender gas-limit callback-fn]
   (let [contract (make-dai-token-contract web3 sender gas-limit)]
     (.call (.balanceOf (.-methods contract) sender) callback-fn)))
 

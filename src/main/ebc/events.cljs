@@ -29,7 +29,6 @@
 (rf/reg-event-db
   :set-field-value
   (fn [db [_ form-name field-name new-value]]
-    (js/console.log new-value)
     (assoc-in db [form-name field-name] new-value)))
 
 (rf/reg-event-db
@@ -106,7 +105,7 @@
       (contract/get-dai-balance (:web3 value) (:account value) (:gas-limit value) error-fn))
     ;; set eth balance
     (.getBalance (.-eth (:web3 value)) (:account value)
-                 (fn [e v]
+                 (fn [_e v]
                    (let [balance (.fromWei (.-utils (:web3 value)) v)]
                      (rf/dispatch [:get-balance balance])
                      (js/console.log balance))))))
